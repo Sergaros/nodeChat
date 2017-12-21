@@ -1,19 +1,35 @@
 const path = require('path');
-const express = require('express');
+const app = require('express')();
+
 const bodyParser = require('body-parser');
 const serveStatic = require('serve-static');
 
 const publicPath = path.join(__dirname,'../public');
-const app = express();
+
+const server = require('http').Server(app);
+const io = require('socket.io')(server);
+
 const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 app.use(serveStatic(publicPath));
 
-if(require.main === module){
-    app.listen(port, () => {
-      console.log(`Started on port ${port}`);
+io.on('connection', (socket)=>{
+    console.log('new user connected');
+
+    socket.on('disconnect', (socket)=>{
+        console.log('User was disconnected');
     });
-} else {
-    module.exports = {app};
-}
+});
+
+server.listen(port, () => {
+  console.log(`Started on port ${port}`);
+});
+
+// if(require.main === module){
+//     server.listen(port, () => {
+//       console.log(`Started on port ${port}`);
+//     });
+// } else {
+//     module.exports = {app};
+// }
