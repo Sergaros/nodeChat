@@ -17,6 +17,16 @@ app.use(serveStatic(publicPath));
 io.on('connection', (socket)=>{
     console.log('new user connected');
 
+    socket.emit('newMessage', {
+        from: 'User1',
+        text: 'Hello',
+        createdAt: Date.now()
+    });
+
+    socket.on('createMessage', msg=>{
+        console.log('createMessage ', msg);
+    })
+
     socket.on('disconnect', (socket)=>{
         console.log('User was disconnected');
     });
