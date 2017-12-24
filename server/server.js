@@ -17,6 +17,17 @@ app.use(serveStatic(publicPath));
 io.on('connection', (socket)=>{
     console.log('new user connected');
 
+    socket.emit('newMessage', {
+        from: 'Admin',
+        text: 'Welcome to the chat app!',
+        createdAt: Date.now()
+    });
+
+    socket.broadcast.emit('newMessage', {
+        from: 'Admin',
+        text: 'New User joined to the chat!',
+        createdAt: Date.now()
+    });
 
     socket.on('createMessage', message=>{
         console.log('createMessage ', message);
