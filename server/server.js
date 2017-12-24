@@ -17,14 +17,14 @@ app.use(serveStatic(publicPath));
 io.on('connection', (socket)=>{
     console.log('new user connected');
 
-    socket.emit('newMessage', {
-        from: 'User1',
-        text: 'Hello',
-        createdAt: Date.now()
-    });
 
-    socket.on('createMessage', msg=>{
-        console.log('createMessage ', msg);
+    socket.on('createMessage', message=>{
+        console.log('createMessage ', message);
+        io.emit('newMessage', {
+            from: message.from,
+            text: message.text,
+            createdAt: Date.now()
+        });
     })
 
     socket.on('disconnect', (socket)=>{
