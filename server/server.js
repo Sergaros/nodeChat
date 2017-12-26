@@ -1,56 +1,39 @@
 const path = require('path');
-const app = require('express')();
+const http = require('http');
+const express = require('express');
+const socketIO = require('socket.io');
 
-const bodyParser = require('body-parser');
-const serveStatic = require('serve-static');
-
-const publicPath = path.join(__dirname,'../public');
-
-const server = require('http').Server(app);
-const io = require('socket.io')(server);
-
+const {generateMessage, generateLocationMessage} = require('./utils/message');
+const publicPath = path.join(__dirname, '../public');
 const port = process.env.PORT || 3000;
+var app = express();
+var server = http.createServer(app);
+var io = socketIO(server);
 
-app.use(bodyParser.json());
-app.use(serveStatic(publicPath));
+app.use(express.static(publicPath));
 
-io.on('connection', (socket)=>{
-    console.log('new user connected');
+io.on('connection', (socket) => {
+  console.log('New user connected');
 
-    socket.emit('newMessage', {
-        from: 'Admin',
-        text: 'Welcome to the chat app!',
-        createdAt: Date.now()
-    });
+  socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
 
-    socket.broadcast.emit('newMessage', {
-        from: 'Admin',
-        text: 'New User joined to the chat!',
-        createdAt: Date.now()
-    });
+  socket.broadcast.emit('newMessage', generateMessage('Admin', 'New user joined'));
 
-    socket.on('createMessage', message=>{
-        console.log('createMessage ', message);
-        io.emit('newMessage', {
-            from: message.from,
-            text: message.text,
-            createdAt: Date.now()
-        });
-    })
+  socket.on('createMessage', (message, callback) => {
+    console.log('createMessage', message);
+    io.emit('newMessage', generateMessage(message.from, message.text));
+    callback('This is from the server.');
+  });
 
-    socket.on('disconnect', (socket)=>{
-        console.log('User was disconnected');
-    });
+  socket.on('createLocationMessage', (coords) => {
+    io.emit('newLocationMessage', generateLocationMessage('Admin', coords.latitude, coords.longitude));
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User was disconnected');
+  });
 });
 
 server.listen(port, () => {
-  console.log(`Started on port ${port}`);
+  console.log(`Server is up on ${port}`);
 });
-
-// if(require.main === module){
-//     server.listen(port, () => {
-//       console.log(`Started on port ${port}`);
-//     });
-// } else {
-//     module.exports = {app};
-// }
